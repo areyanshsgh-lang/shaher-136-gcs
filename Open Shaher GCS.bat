@@ -43,6 +43,11 @@ REM Ensure the database exists
 echo [2/3] Setting up database...
 call bun run setup >nul 2>&1
 
+REM Free ports 3000 and 3004 if a previous copy is still running, so re-opening
+REM the app never fails with "address already in use".
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":3000 " ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":3004 " ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
+
 REM Start the drone relay service (port 3004) in its own window
 echo [3/3] Starting drone service ^(port 3004^)...
 start "Shaher Drone Service" cmd /c "cd /d "%~dp0mini-services\drone-service" && bun run dev"

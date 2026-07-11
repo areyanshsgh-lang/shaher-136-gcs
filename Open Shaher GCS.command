@@ -44,6 +44,17 @@ fi
 echo "[2/3] Setting up database..."
 bun run setup >/dev/null 2>&1
 
+# Free ports 3000 & 3004 if a previous copy is still running, so re-opening
+# the app never fails with "address already in use".
+for port in 3000 3004; do
+  pid=$(lsof -nP -iTCP:$port -sTCP:LISTEN -t 2>/dev/null)
+  if [ -n "$pid" ]; then
+    echo "Freeing port $port (leftover from a previous run)..."
+    kill "$pid" 2>/dev/null
+  fi
+done
+sleep 1
+
 # Start the drone relay service (port 3004) in the background
 echo "[3/3] Starting drone service (port 3004)..."
 (
