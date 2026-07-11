@@ -21,6 +21,7 @@ import {
   Upload,
   Crosshair,
   Navigation,
+  LocateFixed,
 } from 'lucide-react'
 
 // Real dark/light basemaps (CARTO — free, no API key) instead of a CSS filter hack.
@@ -31,6 +32,9 @@ const TILE_ATTRIB =
 // Satellite / aerial imagery (Esri World Imagery — free, no API key) for a realistic 3D-ish look.
 const SAT_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 const SAT_ATTRIB = 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics'
+// "You are here" marker (cyan dot) — distinct from the blue drone marker.
+const USER_LOC_HTML =
+  '<div style="width:16px;height:16px;background:#22d3ee;border:3px solid #fff;border-radius:50%;box-shadow:0 0 10px rgba(34,211,238,0.9);"></div>'
 
 const ACTION_COLORS: Record<string, string> = {
   fly_to: '#f59e0b',
@@ -53,8 +57,11 @@ export default function MapPanel() {
   const pathLineRef = useRef<L.Polyline | null>(null)
   const droneMarkerRef = useRef<L.Marker | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
+  const userMarkerRef = useRef<L.Marker | null>(null)
+  const userLocRef = useRef<{ lat: number; lng: number } | null>(null)
   const [isAddingWaypoint, setIsAddingWaypoint] = useState(false)
   const [mapReady, setMapReady] = useState(false)
+  const [coordInput, setCoordInput] = useState('')
   const addingRef = useRef(false)
   const waypointsCountRef = useRef(0)
 
@@ -66,6 +73,7 @@ export default function MapPanel() {
     selectWaypoint,
     selectedWaypointId,
     telemetry,
+    addLog,
   } = useDroneStore()
 
   // Keep refs in sync with state so the map click handler always reads fresh values
@@ -124,6 +132,25 @@ export default function MapPanel() {
 
       mapInstanceRef.current = map
       setMapReady(true)
+
+      // Open over the user's real location if they allow it (falls back to the default view).
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const { latitude, longitude } = pos.coords
+            userLocRef.current = { lat: latitude, lng: longitude }
+            map.setView([latitude, longitude], 15)
+            userMarkerRef.current = L.marker([latitude, longitude], {
+              icon: L.divIcon({ className: 'user-loc-marker', html: USER_LOC_HTML, iconSize: [16, 16], iconAnchor: [8, 8] }),
+              title: 'Your location',
+            }).addTo(map)
+          },
+          () => {
+            /* permission denied / unavailable → keep the default center */
+          },
+          { enableHighAccuracy: true, timeout: 8000 },
+        )
+      }
 
       // Handle map click for adding waypoints (uses refs to avoid stale closure)
       map.on('click', (e: L.LeafletMouseEvent) => {
@@ -263,6 +290,74 @@ export default function MapPanel() {
     }
   }, [])
 
+  // Locate the user; optionally drop a waypoint at their position.
+  const showUserLocation = useCallback(
+    (opts: { fly?: boolean; addWp?: boolean } = {}) => {
+      const { fly = true, addWp = false } = opts
+      if (typeof navigator === 'undefined' || !navigator.geolocation) {
+        addLog({ level: 'error', message: 'Geolocation is not available in this browser', source: 'gcs' })
+        return
+      }
+      addLog({ level: 'info', message: 'Getting your location…', source: 'gcs' })
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude
+          const lng = pos.coords.longitude
+          userLocRef.current = { lat, lng }
+          import('leaflet').then((L) => {
+            const map = mapInstanceRef.current
+            if (!map) return
+            if (userMarkerRef.current) {
+              userMarkerRef.current.setLatLng([lat, lng])
+            } else {
+              userMarkerRef.current = L.marker([lat, lng], {
+                icon: L.divIcon({ className: 'user-loc-marker', html: USER_LOC_HTML, iconSize: [16, 16], iconAnchor: [8, 8] }),
+                title: 'Your location',
+              }).addTo(map)
+            }
+            if (fly) map.flyTo([lat, lng], 16, { duration: 0.6 })
+            if (addWp) {
+              const nw: Waypoint = {
+                id: Math.random().toString(36).substr(2, 9),
+                order: waypointsCountRef.current,
+                latitude: lat,
+                longitude: lng,
+                altitude: 50,
+                speed: 10,
+                action: 'fly_to',
+                loiterTime: 0,
+              }
+              addWaypoint(nw)
+              selectWaypoint(nw.id)
+            }
+          })
+          addLog({ level: 'info', message: `Your location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, source: 'gcs' })
+        },
+        (err) => {
+          addLog({ level: 'error', message: `Couldn't get location: ${err.message}`, source: 'gcs' })
+        },
+        { enableHighAccuracy: true, timeout: 10000 },
+      )
+    },
+    [addLog, addWaypoint, selectWaypoint],
+  )
+
+  // Fly to typed "lat, lng" coordinates.
+  const goToCoords = useCallback(() => {
+    const nums = coordInput.split(/[\s,]+/).map((s) => parseFloat(s)).filter((n) => !Number.isNaN(n))
+    if (nums.length < 2) {
+      addLog({ level: 'warn', message: 'Enter coordinates as "lat, lng"', source: 'gcs' })
+      return
+    }
+    const [lat, lng] = nums
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      addLog({ level: 'warn', message: 'Coordinates out of range (lat ±90, lng ±180)', source: 'gcs' })
+      return
+    }
+    mapInstanceRef.current?.flyTo([lat, lng], 15, { duration: 0.6 })
+    addLog({ level: 'info', message: `Flying to ${lat.toFixed(5)}, ${lng.toFixed(5)}`, source: 'gcs' })
+  }, [coordInput, addLog])
+
   const selectedWp = waypoints.find((w) => w.id === selectedWaypointId)
 
   return (
@@ -301,6 +396,40 @@ export default function MapPanel() {
                 <Crosshair className="h-3 w-3" /> Drone
               </Button>
             )}
+          </div>
+        </div>
+
+        {/* Location tools: my location · waypoint at my location · go-to coordinates */}
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs gap-1"
+            onClick={() => showUserLocation({ fly: true })}
+          >
+            <LocateFixed className="h-3 w-3" /> My Location
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs gap-1"
+            onClick={() => showUserLocation({ fly: true, addWp: true })}
+          >
+            <MapPin className="h-3 w-3" /> WP Here
+          </Button>
+          <div className="flex items-center gap-1 ml-auto">
+            <Input
+              value={coordInput}
+              onChange={(e) => setCoordInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') goToCoords()
+              }}
+              placeholder="lat, lng"
+              className="h-7 text-xs w-32"
+            />
+            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" onClick={goToCoords}>
+              Go
+            </Button>
           </div>
         </div>
       </CardHeader>
