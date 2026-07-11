@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Mission {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  status      String    @default("draft") // draft, active, completed, aborted
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  waypoints   Waypoint[]
+}
+
+model Waypoint {
+  id         String  @id @default(cuid())
+  missionId  String
+  order      Int
+  latitude   Float
+  longitude  Float
+  altitude   Float   @default(50.0) // meters
+  speed      Float   @default(10.0) // m/s
+  action     String  @default("fly_to") // fly_to, loiter, land, takeoff
+  loiterTime Int     @default(0) // seconds to loiter
+  mission    Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+}
+
+model FlightLog {
+  id        String   @id @default(cuid())
+  missionId String?
+  timestamp DateTime @default(now())
+  latitude  Float?
+  longitude Float?
+  altitude  Float?
+  speed     Float?
+  heading   Float?
+  roll      Float?
+  pitch     Float?
+  yaw       Float?
+  battery   Float?
+  message   String?
+
+  @@index([missionId])
+}

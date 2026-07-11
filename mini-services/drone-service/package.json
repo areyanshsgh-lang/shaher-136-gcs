@@ -1,0 +1,10 @@
+{
+  "name": "drone-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WebSocket relay between the Web GCS and the drone (ESP32). No dependencies — uses Bun's built-in WebSocket server.",
+  "scripts": {
+    "dev": "bun --hot index.ts",
+    "start": "bun index.ts"
+  }
+}

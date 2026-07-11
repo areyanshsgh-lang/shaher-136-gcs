@@ -1,0 +1,196 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.98 0.004 250);
+  --foreground: oklch(0.2 0.02 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.02 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.02 255);
+  --primary: oklch(0.7 0.16 60);
+  --primary-foreground: oklch(0.2 0.03 260);
+  --secondary: oklch(0.96 0.006 250);
+  --secondary-foreground: oklch(0.24 0.02 255);
+  --muted: oklch(0.96 0.006 250);
+  --muted-foreground: oklch(0.5 0.02 255);
+  --accent: oklch(0.95 0.01 250);
+  --accent-foreground: oklch(0.24 0.02 255);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.9 0.01 250);
+  --input: oklch(0.9 0.01 250);
+  --ring: oklch(0.7 0.16 60);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.98 0.004 250);
+  --sidebar-foreground: oklch(0.2 0.02 255);
+  --sidebar-primary: oklch(0.7 0.16 60);
+  --sidebar-primary-foreground: oklch(0.2 0.03 260);
+  --sidebar-accent: oklch(0.95 0.01 250);
+  --sidebar-accent-foreground: oklch(0.24 0.02 255);
+  --sidebar-border: oklch(0.9 0.01 250);
+  --sidebar-ring: oklch(0.7 0.16 60);
+}
+
+.dark {
+  /* Tactical ground-control palette: deep blue-black surfaces, amber signal accent */
+  --background: oklch(0.17 0.012 255);
+  --foreground: oklch(0.96 0.004 250);
+  --card: oklch(0.215 0.016 255);
+  --card-foreground: oklch(0.96 0.004 250);
+  --popover: oklch(0.2 0.016 255);
+  --popover-foreground: oklch(0.96 0.004 250);
+  --primary: oklch(0.79 0.155 72);
+  --primary-foreground: oklch(0.19 0.03 260);
+  --secondary: oklch(0.27 0.018 255);
+  --secondary-foreground: oklch(0.96 0.004 250);
+  --muted: oklch(0.26 0.016 255);
+  --muted-foreground: oklch(0.72 0.02 250);
+  --accent: oklch(0.3 0.02 255);
+  --accent-foreground: oklch(0.96 0.004 250);
+  --destructive: oklch(0.66 0.2 22);
+  --border: oklch(0.85 0.04 250 / 12%);
+  --input: oklch(0.85 0.04 250 / 15%);
+  --ring: oklch(0.79 0.155 72);
+  --chart-1: oklch(0.79 0.155 72);
+  --chart-2: oklch(0.7 0.14 195);
+  --chart-3: oklch(0.68 0.16 145);
+  --chart-4: oklch(0.62 0.2 300);
+  --chart-5: oklch(0.66 0.22 20);
+  --sidebar: oklch(0.19 0.014 255);
+  --sidebar-foreground: oklch(0.96 0.004 250);
+  --sidebar-primary: oklch(0.79 0.155 72);
+  --sidebar-primary-foreground: oklch(0.19 0.03 260);
+  --sidebar-accent: oklch(0.3 0.02 255);
+  --sidebar-accent-foreground: oklch(0.96 0.004 250);
+  --sidebar-border: oklch(0.85 0.04 250 / 12%);
+  --sidebar-ring: oklch(0.79 0.155 72);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ── Tactical shell: atmospheric glow + faint HUD grid behind the app ── */
+.app-shell {
+  background:
+    radial-gradient(1100px 560px at 10% -10%, oklch(0.79 0.155 72 / 0.08), transparent 60%),
+    radial-gradient(1000px 520px at 108% -6%, oklch(0.62 0.13 250 / 0.07), transparent 55%),
+    var(--background);
+  position: relative;
+  isolation: isolate;
+}
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, oklch(0.85 0.04 250 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.85 0.04 250 / 0.035) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(130% 95% at 50% 0%, black 25%, transparent 80%);
+  mask-image: radial-gradient(130% 95% at 50% 0%, black 25%, transparent 80%);
+}
+:root:not(.dark) .app-shell::before {
+  background-image:
+    linear-gradient(to right, oklch(0.4 0.03 250 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.4 0.03 250 / 0.05) 1px, transparent 1px);
+}
+
+/* Dark map background while CARTO dark tiles load */
+.dark .leaflet-container {
+  background: oklch(0.17 0.012 255);
+}
+
+/* Smooth the live drone marker's movement between telemetry updates */
+.leaflet-marker-icon.drone-marker {
+  transition: transform 0.09s linear;
+}
+:root:not(.dark) .leaflet-container {
+  background: oklch(0.94 0.006 250);
+}
+
+/* Map "viewport" corner brackets for a targeting feel */
+.map-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 500;
+  background:
+    linear-gradient(var(--primary), var(--primary)) 0 0 / 14px 2px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 0 0 / 2px 14px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 100% 0 / 14px 2px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 100% 0 / 2px 14px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 0 100% / 14px 2px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 0 100% / 2px 14px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 100% 100% / 14px 2px no-repeat,
+    linear-gradient(var(--primary), var(--primary)) 100% 100% / 2px 14px no-repeat;
+  opacity: 0.5;
+}
+
+/* Subtle amber under-glow strip (e.g. beneath the header) */
+.accent-underline {
+  box-shadow: 0 1px 0 0 oklch(0.79 0.155 72 / 0.25), 0 6px 24px -12px oklch(0.79 0.155 72 / 0.5);
+}
+
+/* Live/armed pulse used for status dots */
+@keyframes signal-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+  50% { opacity: 0.65; box-shadow: 0 0 0 3px transparent; }
+}
+.signal-live { animation: signal-pulse 1.8s ease-in-out infinite; }
