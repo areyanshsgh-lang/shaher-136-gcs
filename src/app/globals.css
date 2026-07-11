@@ -163,6 +163,30 @@
   background: oklch(0.94 0.006 250);
 }
 
+/* Dark-theme styling for Leaflet controls (zoom + basemap switcher + attribution) */
+.dark .leaflet-bar a,
+.dark .leaflet-control-layers {
+  background-color: oklch(0.22 0.016 255);
+  color: oklch(0.92 0.01 250);
+  border-color: oklch(0.85 0.04 250 / 15%) !important;
+}
+.dark .leaflet-bar a:hover {
+  background-color: oklch(0.3 0.02 255);
+}
+.dark .leaflet-control-layers-toggle {
+  filter: invert(0.9);
+}
+.dark .leaflet-control-layers-expanded {
+  color: oklch(0.92 0.01 250);
+}
+.dark .leaflet-control-attribution {
+  background: oklch(0.2 0.014 255 / 0.75) !important;
+  color: oklch(0.68 0.02 250) !important;
+}
+.dark .leaflet-control-attribution a {
+  color: oklch(0.79 0.155 72) !important;
+}
+
 /* Map "viewport" corner brackets for a targeting feel */
 .map-viewport::after {
   content: "";

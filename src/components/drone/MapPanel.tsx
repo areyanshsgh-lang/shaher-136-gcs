@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { useTheme } from 'next-themes'
 import { useDroneStore, type Waypoint } from '@/lib/drone-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,6 +28,9 @@ const DARK_TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.pn
 const LIGHT_TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
 const TILE_ATTRIB =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+// Satellite / aerial imagery (Esri World Imagery — free, no API key) for a realistic 3D-ish look.
+const SAT_TILE_URL = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+const SAT_ATTRIB = 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics'
 
 const ACTION_COLORS: Record<string, string> = {
   fly_to: '#f59e0b',
@@ -51,7 +53,6 @@ export default function MapPanel() {
   const pathLineRef = useRef<L.Polyline | null>(null)
   const droneMarkerRef = useRef<L.Marker | null>(null)
   const tileLayerRef = useRef<L.TileLayer | null>(null)
-  const { resolvedTheme } = useTheme()
   const [isAddingWaypoint, setIsAddingWaypoint] = useState(false)
   const [mapReady, setMapReady] = useState(false)
   const addingRef = useRef(false)
@@ -96,10 +97,22 @@ export default function MapPanel() {
       })
 
       const isDark = document.documentElement.classList.contains('dark')
-      tileLayerRef.current = L.tileLayer(isDark ? DARK_TILE_URL : LIGHT_TILE_URL, {
-        attribution: TILE_ATTRIB,
-        maxZoom: 20,
-      }).addTo(map)
+      const tacticalLayer = L.tileLayer(DARK_TILE_URL, { attribution: TILE_ATTRIB, maxZoom: 20 })
+      const streetsLayer = L.tileLayer(LIGHT_TILE_URL, { attribution: TILE_ATTRIB, maxZoom: 20 })
+      const satelliteLayer = L.tileLayer(SAT_TILE_URL, { attribution: SAT_ATTRIB, maxZoom: 19 })
+
+      const baseLayer = isDark ? tacticalLayer : streetsLayer
+      baseLayer.addTo(map)
+      tileLayerRef.current = baseLayer
+
+      // Basemap switcher (top-right): Tactical dark · Satellite (aerial) · Streets
+      L.control
+        .layers(
+          { Tactical: tacticalLayer, Satellite: satelliteLayer, Streets: streetsLayer },
+          {},
+          { position: 'topright', collapsed: true },
+        )
+        .addTo(map)
 
       markersLayerRef.current = L.layerGroup().addTo(map)
       pathLineRef.current = L.polyline([], {
@@ -242,12 +255,6 @@ export default function MapPanel() {
       }
     })
   }, [telemetry.lat, telemetry.lng, mapReady])
-
-  // Swap basemap when the theme changes
-  useEffect(() => {
-    if (!mapReady || !tileLayerRef.current) return
-    tileLayerRef.current.setUrl(resolvedTheme === 'dark' ? DARK_TILE_URL : LIGHT_TILE_URL)
-  }, [resolvedTheme, mapReady])
 
   // Fly to waypoint when selected
   const flyToWaypoint = useCallback((wp: Waypoint) => {
