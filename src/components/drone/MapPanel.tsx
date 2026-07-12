@@ -324,7 +324,7 @@ export default function MapPanel() {
                 longitude: lng,
                 altitude: 50,
                 speed: 10,
-                action: 'fly_to',
+                action: 'takeoff', // your current location is the launch point
                 loiterTime: 0,
               }
               addWaypoint(nw)
@@ -334,7 +334,16 @@ export default function MapPanel() {
           addLog({ level: 'info', message: `Your location: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, source: 'gcs' })
         },
         (err) => {
-          addLog({ level: 'error', message: `Couldn't get location: ${err.message}`, source: 'gcs' })
+          const reason =
+            err.code === 1
+              ? "Location permission is blocked. Click the location / site-info icon in your browser's address bar and allow it. On Mac also turn ON System Settings → Privacy & Security → Location Services (and enable it for your browser)."
+              : err.code === 2
+                ? 'Your location is unavailable. On Mac, turn ON System Settings → Privacy & Security → Location Services and enable it for your browser, then try again.'
+                : err.code === 3
+                  ? 'The location request timed out — click again.'
+                  : err.message
+          addLog({ level: 'error', message: `Location failed: ${reason}`, source: 'gcs' })
+          if (typeof window !== 'undefined') window.alert('Could not get your location.\n\n' + reason)
         },
         { enableHighAccuracy: true, timeout: 10000 },
       )
