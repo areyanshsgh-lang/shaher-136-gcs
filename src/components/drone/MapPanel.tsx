@@ -2,9 +2,8 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useDroneStore, type Waypoint } from '@/lib/drone-store'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -22,6 +21,7 @@ import {
   Crosshair,
   Navigation,
   LocateFixed,
+  Globe,
 } from 'lucide-react'
 
 // Real dark/light basemaps (CARTO — free, no API key) instead of a CSS filter hack.
@@ -371,73 +371,85 @@ export default function MapPanel() {
 
   return (
     <Card className="border-border/50 h-full flex flex-col">
-      <CardHeader className="p-3 pb-2 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Navigation className="h-3.5 w-3.5" />
-            Mission Map
-          </CardTitle>
-          <div className="flex items-center gap-1.5">
-            <Badge variant="outline" className="text-[10px]">
-              {waypoints.length} waypoints
-            </Badge>
+      <CardHeader className="relative p-4 pb-3 flex-shrink-0 space-y-3 overflow-hidden">
+        {/* soft amber glow behind the header */}
+        <div className="pointer-events-none absolute -top-20 right-6 h-40 w-72 rounded-full bg-amber-500/5 blur-3xl" />
+
+        {/* Row 1 — title + waypoints + Add WP */}
+        <div className="relative flex items-start justify-between gap-3">
+          <div className="flex items-start gap-2.5">
+            <Navigation className="h-6 w-6 text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h2 className="text-lg font-bold tracking-tight leading-none">MISSION MAP</h2>
+              <p className="text-xs text-muted-foreground mt-1.5">Plan your route. Track your mission.</p>
+              <div className="mt-2 h-[3px] w-10 rounded-full bg-amber-500" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {telemetry.lat != null && telemetry.lng != null && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 text-xs gap-1.5"
+                onClick={() => {
+                  mapInstanceRef.current?.flyTo([telemetry.lat!, telemetry.lng!], 17, { duration: 0.5 })
+                }}
+              >
+                <Crosshair className="h-3.5 w-3.5" /> Drone
+              </Button>
+            )}
+            <div className="flex items-center gap-1.5 h-9 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3">
+              <MapPin className="h-3.5 w-3.5 text-amber-400" />
+              <span className="text-sm font-medium whitespace-nowrap">{waypoints.length} waypoints</span>
+            </div>
             <Button
-              variant={isAddingWaypoint ? 'default' : 'outline'}
+              variant="default"
               size="sm"
-              className="h-7 text-xs gap-1"
+              className="h-9 gap-1.5 font-medium shadow-lg shadow-amber-500/20"
               onClick={() => setIsAddingWaypoint(!isAddingWaypoint)}
             >
               {isAddingWaypoint ? (
                 <>Click map to place</>
               ) : (
-                <><Plus className="h-3 w-3" /> Add WP</>
+                <><Plus className="h-4 w-4" /> Add WP</>
               )}
             </Button>
-            {telemetry.lat != null && telemetry.lng != null && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs gap-1"
-                onClick={() => {
-                  mapInstanceRef.current?.flyTo([telemetry.lat!, telemetry.lng!], 17, { duration: 0.5 })
-                }}
-              >
-                <Crosshair className="h-3 w-3" /> Drone
-              </Button>
-            )}
           </div>
         </div>
 
-        {/* Location tools: my location · waypoint at my location · go-to coordinates */}
-        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+        {/* Row 2 — location tools + coordinate go-to */}
+        <div className="relative flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
-            className="h-7 text-xs gap-1"
+            className="h-9 gap-1.5 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 shadow-[0_0_18px_-6px] shadow-amber-500/50"
             onClick={() => showUserLocation({ fly: true })}
           >
-            <LocateFixed className="h-3 w-3" /> My Location
+            <LocateFixed className="h-3.5 w-3.5" /> My Location
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="h-7 text-xs gap-1"
+            className="h-9 gap-1.5"
             onClick={() => showUserLocation({ fly: true, addWp: true })}
           >
-            <MapPin className="h-3 w-3" /> WP Here
+            <MapPin className="h-3.5 w-3.5" /> WP Here
           </Button>
-          <div className="flex items-center gap-1 ml-auto">
-            <Input
-              value={coordInput}
-              onChange={(e) => setCoordInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') goToCoords()
-              }}
-              placeholder="lat, lng"
-              className="h-7 text-xs w-32"
-            />
-            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" onClick={goToCoords}>
-              Go
+          <div className="flex items-center gap-2 ml-auto">
+            <div className="relative">
+              <Globe className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                value={coordInput}
+                onChange={(e) => setCoordInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') goToCoords()
+                }}
+                placeholder="lat, lng"
+                className="h-9 pl-9 w-44 text-sm"
+              />
+            </div>
+            <Button variant="default" size="sm" className="h-9 gap-1.5 font-medium" onClick={goToCoords}>
+              <Navigation className="h-3.5 w-3.5" /> Go
             </Button>
           </div>
         </div>
