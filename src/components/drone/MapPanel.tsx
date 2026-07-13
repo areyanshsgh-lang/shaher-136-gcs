@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useDroneStore, type Waypoint } from '@/lib/drone-store'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -98,7 +98,7 @@ export default function MapPanel() {
       const map = L.map(mapRef.current!, {
         center: [12.9716, 77.5946], // Bangalore, India (user timezone)
         zoom: 15,
-        zoomControl: true,
+        zoomControl: false,
         zoomSnap: 0.25,
         zoomDelta: 0.25,
         wheelPxPerZoomLevel: 480,
@@ -114,12 +114,13 @@ export default function MapPanel() {
       baseLayer.addTo(map)
       tileLayerRef.current = baseLayer
 
-      // Basemap switcher (top-right): Tactical dark · Satellite (aerial) · Streets
+      // Zoom + basemap switcher live at the bottom so the top is free for floating controls
+      L.control.zoom({ position: 'bottomleft' }).addTo(map)
       L.control
         .layers(
           { Tactical: tacticalLayer, Satellite: satelliteLayer, Streets: streetsLayer },
           {},
-          { position: 'topright', collapsed: true },
+          { position: 'bottomright', collapsed: true },
         )
         .addTo(map)
 
@@ -374,64 +375,67 @@ export default function MapPanel() {
   const selectedWp = waypoints.find((w) => w.id === selectedWaypointId)
 
   return (
-    <Card className="relative border-border/50 h-full flex flex-col overflow-hidden">
-      {/* glowing edge accents — cyan (left) · amber (right) */}
-      <div className="pointer-events-none absolute left-0 top-10 bottom-10 w-[3px] rounded-full bg-gradient-to-b from-transparent via-cyan-400/60 to-transparent z-20" />
-      <div className="pointer-events-none absolute right-0 top-10 bottom-10 w-[3px] rounded-full bg-gradient-to-b from-transparent via-amber-500/60 to-transparent z-20" />
-      <CardHeader className="relative p-3 flex-shrink-0 space-y-2.5">
-        {/* soft dual glows behind the header */}
-        <div className="pointer-events-none absolute -top-16 left-8 h-28 w-56 rounded-full bg-cyan-500/5 blur-3xl" />
-        <div className="pointer-events-none absolute -top-16 right-8 h-28 w-56 rounded-full bg-amber-500/5 blur-3xl" />
+    <Card className="relative border-border/50 h-full overflow-hidden">
+      {/* Map fills the whole panel */}
+      <div ref={mapRef} className="absolute inset-0 z-0" />
 
-        {/* Row 1 — title + waypoints + Add WP */}
-        <div className="relative flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Navigation className="h-6 w-6 text-cyan-400 shrink-0 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
-            <div className="min-w-0">
-              <h2 className="text-base font-bold tracking-tight leading-none">
-                <span className="text-foreground">MISSION</span> <span className="text-cyan-400">MAP</span>
-              </h2>
-              <div className="mt-1.5 h-0.5 w-24 rounded-full bg-gradient-to-r from-cyan-400 via-cyan-400/40 to-transparent" />
-            </div>
+      {/* Glowing edge accents — cyan (left) · amber (right) */}
+      <div className="pointer-events-none absolute left-0 top-16 bottom-16 w-[3px] rounded-full bg-gradient-to-b from-transparent via-cyan-400/70 to-transparent z-[500]" />
+      <div className="pointer-events-none absolute right-0 top-16 bottom-16 w-[3px] rounded-full bg-gradient-to-b from-transparent via-amber-500/70 to-transparent z-[500]" />
+
+      {/* Top scrim keeps the floating controls readable over the map */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background/90 via-background/45 to-transparent z-[500]" />
+
+      {/* Row 1 — title (left) · waypoints + Add WP (right) — floating over the map */}
+      <div className="absolute top-3 left-3 right-3 z-[600] flex items-start justify-between gap-3 pointer-events-none">
+        <div className="flex items-center gap-2.5 min-w-0 pointer-events-auto">
+          <Navigation className="h-6 w-6 text-cyan-400 shrink-0 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+          <div className="min-w-0">
+            <h2 className="text-base font-bold tracking-tight leading-none drop-shadow-md">
+              <span className="text-foreground">MISSION</span> <span className="text-cyan-400">MAP</span>
+            </h2>
+            <div className="mt-1.5 h-0.5 w-24 rounded-full bg-gradient-to-r from-cyan-400 via-cyan-400/40 to-transparent" />
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {telemetry.lat != null && telemetry.lng != null && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-9 text-xs gap-1.5 rounded-lg font-medium border-cyan-500/50 text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20"
-                onClick={() => {
-                  mapInstanceRef.current?.flyTo([telemetry.lat!, telemetry.lng!], 17, { duration: 0.5 })
-                }}
-              >
-                <Crosshair className="h-3.5 w-3.5" /> Drone
-              </Button>
-            )}
-            <div className="hidden sm:flex items-center gap-1.5 h-9 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3">
-              <Flag className="h-3.5 w-3.5 text-amber-400" />
-              <span className="text-xs font-medium text-amber-300 whitespace-nowrap tabular-nums">{waypoints.length} waypoints</span>
-            </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 pointer-events-auto">
+          {telemetry.lat != null && telemetry.lng != null && (
             <Button
               variant="outline"
               size="sm"
-              className="h-9 gap-1.5 text-xs rounded-lg font-semibold border-amber-500/60 text-amber-300 bg-amber-500/10 hover:bg-amber-500/20"
-              onClick={() => setIsAddingWaypoint(!isAddingWaypoint)}
+              className="h-9 text-xs gap-1.5 rounded-lg font-medium border-cyan-500/50 text-cyan-300 bg-background/60 backdrop-blur-md hover:bg-cyan-500/20"
+              onClick={() => {
+                mapInstanceRef.current?.flyTo([telemetry.lat!, telemetry.lng!], 17, { duration: 0.5 })
+              }}
             >
-              {isAddingWaypoint ? (
-                <>Click map…</>
-              ) : (
-                <><Plus className="h-3.5 w-3.5" /> Add WP</>
-              )}
+              <Crosshair className="h-3.5 w-3.5" /> Drone
             </Button>
+          )}
+          <div className="hidden sm:flex items-center gap-1.5 h-9 rounded-lg border border-amber-500/40 bg-background/60 backdrop-blur-md px-3">
+            <Flag className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-xs font-medium text-amber-300 whitespace-nowrap tabular-nums">{waypoints.length} waypoints</span>
           </div>
-        </div>
-
-        {/* Row 2 — location tools + coordinate go-to */}
-        <div className="relative flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5 text-xs rounded-lg font-medium border-cyan-500/50 text-foreground bg-cyan-500/5 hover:bg-cyan-500/15"
+            className="h-9 gap-1.5 text-xs rounded-lg font-semibold border-amber-500/60 text-amber-300 bg-background/60 backdrop-blur-md hover:bg-amber-500/20"
+            onClick={() => setIsAddingWaypoint(!isAddingWaypoint)}
+          >
+            {isAddingWaypoint ? (
+              <>Click map…</>
+            ) : (
+              <><Plus className="h-3.5 w-3.5" /> Add WP</>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Row 2 — My Location / WP Here (left) · coord + Go (right) — floating over the map */}
+      <div className="absolute top-[4.5rem] left-3 right-3 z-[600] flex items-center justify-between gap-3 pointer-events-none">
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-1.5 text-xs rounded-lg font-medium border-cyan-500/50 text-foreground bg-background/60 backdrop-blur-md hover:bg-cyan-500/15"
             onClick={() => showUserLocation({ fly: true })}
           >
             <LocateFixed className="h-3.5 w-3.5 text-cyan-400" /> My Location
@@ -439,36 +443,34 @@ export default function MapPanel() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5 text-xs rounded-lg font-medium border-amber-500/50 text-foreground bg-amber-500/5 hover:bg-amber-500/15"
+            className="h-9 gap-1.5 text-xs rounded-lg font-medium border-amber-500/50 text-foreground bg-background/60 backdrop-blur-md hover:bg-amber-500/15"
             onClick={() => showUserLocation({ fly: true, addWp: true })}
           >
             <MapPin className="h-3.5 w-3.5 text-amber-400" /> WP Here
           </Button>
-          <div className="flex items-center gap-2 ml-auto">
-            <div className="relative">
-              <Globe className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                value={coordInput}
-                onChange={(e) => setCoordInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') goToCoords()
-                }}
-                placeholder="lat, lng"
-                className="h-9 pl-8 w-40 text-xs rounded-lg font-mono"
-              />
-            </div>
-            <Button
-              size="sm"
-              className="h-9 px-5 text-xs rounded-lg font-semibold bg-gradient-to-b from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/30 border-0"
-              onClick={goToCoords}
-            >
-              Go
-            </Button>
-          </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0 flex-1 relative min-h-0 map-viewport overflow-hidden rounded-b-xl">
-        <div ref={mapRef} className="absolute inset-0 z-0" />
+        <div className="flex items-center gap-2 pointer-events-auto">
+          <div className="relative">
+            <Globe className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              value={coordInput}
+              onChange={(e) => setCoordInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') goToCoords()
+              }}
+              placeholder="lat, lng"
+              className="h-9 pl-8 w-40 text-xs rounded-lg font-mono bg-background/60 backdrop-blur-md"
+            />
+          </div>
+          <Button
+            size="sm"
+            className="h-9 px-5 text-xs rounded-lg font-semibold bg-gradient-to-b from-blue-500 to-blue-600 text-white hover:from-blue-400 hover:to-blue-500 shadow-lg shadow-blue-500/30 border-0"
+            onClick={goToCoords}
+          >
+            Go
+          </Button>
+        </div>
+      </div>
 
         {/* Selected Waypoint Editor (overlay on map) */}
         {selectedWp && (
@@ -574,8 +576,6 @@ export default function MapPanel() {
             )}
           </div>
         )}
-
-      </CardContent>
     </Card>
   )
 }
