@@ -371,26 +371,25 @@ export default function MapPanel() {
 
   return (
     <Card className="border-border/50 h-full flex flex-col">
-      <CardHeader className="relative p-4 pb-3 flex-shrink-0 space-y-3 overflow-hidden">
+      <CardHeader className="relative p-2.5 flex-shrink-0 space-y-2 overflow-hidden">
         {/* soft amber glow behind the header */}
-        <div className="pointer-events-none absolute -top-20 right-6 h-40 w-72 rounded-full bg-amber-500/5 blur-3xl" />
+        <div className="pointer-events-none absolute -top-16 right-6 h-28 w-64 rounded-full bg-amber-500/5 blur-3xl" />
 
         {/* Row 1 — title + waypoints + Add WP */}
-        <div className="relative flex items-start justify-between gap-3">
-          <div className="flex items-start gap-2.5">
-            <Navigation className="h-6 w-6 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h2 className="text-lg font-bold tracking-tight leading-none">MISSION MAP</h2>
-              <p className="text-xs text-muted-foreground mt-1.5">Plan your route. Track your mission.</p>
-              <div className="mt-2 h-[3px] w-10 rounded-full bg-amber-500" />
+        <div className="relative flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Navigation className="h-4 w-4 text-amber-400 shrink-0" />
+            <div className="leading-tight min-w-0">
+              <h2 className="text-sm font-bold tracking-tight leading-none">MISSION MAP</h2>
+              <p className="text-[10px] text-muted-foreground truncate">Plan your route · track your mission</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {telemetry.lat != null && telemetry.lng != null && (
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 text-xs gap-1.5"
+                className="h-8 text-xs gap-1.5"
                 onClick={() => {
                   mapInstanceRef.current?.flyTo([telemetry.lat!, telemetry.lng!], 17, { duration: 0.5 })
                 }}
@@ -398,31 +397,31 @@ export default function MapPanel() {
                 <Crosshair className="h-3.5 w-3.5" /> Drone
               </Button>
             )}
-            <div className="flex items-center gap-1.5 h-9 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3">
+            <div className="hidden sm:flex items-center gap-1.5 h-8 rounded-md border border-amber-500/25 bg-amber-500/5 px-2.5">
               <MapPin className="h-3.5 w-3.5 text-amber-400" />
-              <span className="text-sm font-medium whitespace-nowrap">{waypoints.length} waypoints</span>
+              <span className="text-xs font-medium whitespace-nowrap">{waypoints.length} WP</span>
             </div>
             <Button
               variant="default"
               size="sm"
-              className="h-9 gap-1.5 font-medium shadow-lg shadow-amber-500/20"
+              className="h-8 gap-1.5 text-xs font-medium"
               onClick={() => setIsAddingWaypoint(!isAddingWaypoint)}
             >
               {isAddingWaypoint ? (
-                <>Click map to place</>
+                <>Click map…</>
               ) : (
-                <><Plus className="h-4 w-4" /> Add WP</>
+                <><Plus className="h-3.5 w-3.5" /> Add WP</>
               )}
             </Button>
           </div>
         </div>
 
         {/* Row 2 — location tools + coordinate go-to */}
-        <div className="relative flex items-center gap-2 flex-wrap">
+        <div className="relative flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5 border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 shadow-[0_0_18px_-6px] shadow-amber-500/50"
+            className="h-8 gap-1.5 text-xs border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300"
             onClick={() => showUserLocation({ fly: true })}
           >
             <LocateFixed className="h-3.5 w-3.5" /> My Location
@@ -430,14 +429,14 @@ export default function MapPanel() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 gap-1.5"
+            className="h-8 gap-1.5 text-xs"
             onClick={() => showUserLocation({ fly: true, addWp: true })}
           >
             <MapPin className="h-3.5 w-3.5" /> WP Here
           </Button>
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-1.5 ml-auto">
             <div className="relative">
-              <Globe className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Globe className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={coordInput}
                 onChange={(e) => setCoordInput(e.target.value)}
@@ -445,10 +444,10 @@ export default function MapPanel() {
                   if (e.key === 'Enter') goToCoords()
                 }}
                 placeholder="lat, lng"
-                className="h-9 pl-9 w-44 text-sm"
+                className="h-8 pl-8 w-36 text-xs"
               />
             </div>
-            <Button variant="default" size="sm" className="h-9 gap-1.5 font-medium" onClick={goToCoords}>
+            <Button variant="default" size="sm" className="h-8 gap-1.5 text-xs font-medium" onClick={goToCoords}>
               <Navigation className="h-3.5 w-3.5" /> Go
             </Button>
           </div>
