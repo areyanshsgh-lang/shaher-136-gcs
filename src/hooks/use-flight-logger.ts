@@ -13,7 +13,8 @@ const LOG_INTERVAL_MS = 3000
 export function useFlightLogger() {
   const simulationRunning = useDroneStore((s) => s.simulationRunning)
   const connectionStatus = useDroneStore((s) => s.connectionStatus)
-  const active = simulationRunning || connectionStatus === 'connected'
+  const recordEnabled = useDroneStore((s) => s.settings.recordFlightLogs)
+  const active = recordEnabled && (simulationRunning || connectionStatus === 'connected')
 
   useEffect(() => {
     if (!active) return

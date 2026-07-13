@@ -24,6 +24,7 @@ import LogConsole from '@/components/drone/LogConsole'
 import ESP32CodeViewer from '@/components/drone/ESP32CodeViewer'
 import CameraPanel from '@/components/drone/CameraPanel'
 import HelpGuide from '@/components/drone/HelpGuide'
+import SettingsPanel from '@/components/drone/SettingsPanel'
 import { useDroneStore } from '@/lib/drone-store'
 import { useFlightLogger } from '@/hooks/use-flight-logger'
 import {
@@ -38,7 +39,7 @@ import {
   Settings,
 } from 'lucide-react'
 
-type View = 'overview' | 'mission' | 'logs' | 'code' | 'camera' | 'help'
+type View = 'overview' | 'mission' | 'logs' | 'code' | 'camera' | 'help' | 'settings'
 
 const RAIL: { view: View; label: string; icon: React.ElementType }[] = [
   { view: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -67,6 +68,7 @@ export default function HomePage() {
   useFlightLogger()
 
   useEffect(() => {
+    useDroneStore.getState().loadSettings()
     addLog({ level: 'info', message: 'Shaher-136 GCS initialized', source: 'system' })
     addLog({ level: 'info', message: 'Hardware: ESP32 + MPU-6050 + NEO-6M GPS + OV2640', source: 'system' })
     addLog({ level: 'info', message: 'No drone connected. Click "Connect" or enable Simulation Mode.', source: 'system' })
@@ -98,10 +100,16 @@ export default function HomePage() {
             )
           })}
           <button
-            onClick={() => setView('help')}
-            title="Settings & Help"
-            className="mt-auto grid place-items-center h-9 w-9 rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 transition-colors"
+            onClick={() => setView('settings')}
+            title="Settings"
+            className={cn(
+              'relative mt-auto grid place-items-center h-9 w-9 rounded-lg transition-colors',
+              view === 'settings'
+                ? 'bg-amber-500/15 text-amber-400'
+                : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/50',
+            )}
           >
+            {view === 'settings' && <span className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full bg-amber-500" />}
             <Settings className="h-[18px] w-[18px]" />
           </button>
         </nav>
@@ -161,6 +169,12 @@ export default function HomePage() {
           {view === 'help' && (
             <div className="flex-1 min-h-0">
               <HelpGuide />
+            </div>
+          )}
+
+          {view === 'settings' && (
+            <div className="flex-1 min-h-0">
+              <SettingsPanel />
             </div>
           )}
         </main>

@@ -88,6 +88,26 @@ interface DroneState {
   setSimulationMode: (mode: boolean) => void
   simulationRunning: boolean
   setSimulationRunning: (running: boolean) => void
+
+  // Settings (persisted to localStorage)
+  settings: GcsSettings
+  updateSettings: (patch: Partial<GcsSettings>) => void
+  loadSettings: () => void
+}
+
+export interface GcsSettings {
+  relayUrl: string // '' = auto (ws://<this-host>:3004)
+  defaultAltitude: number // metres, applied to new waypoints
+  defaultSpeed: number // m/s, applied to new waypoints
+  recordFlightLogs: boolean // write telemetry snapshots to the database
+}
+
+const SETTINGS_KEY = 'shaher-gcs-settings'
+const defaultSettings: GcsSettings = {
+  relayUrl: '',
+  defaultAltitude: 50,
+  defaultSpeed: 10,
+  recordFlightLogs: true,
 }
 
 const defaultTelemetry: Telemetry = {
@@ -184,4 +204,28 @@ export const useDroneStore = create<DroneState>((set, get) => ({
   setSimulationMode: (mode) => set({ simulationMode: mode }),
   simulationRunning: false,
   setSimulationRunning: (running) => set({ simulationRunning: running }),
+
+  // Settings
+  settings: { ...defaultSettings },
+  updateSettings: (patch) =>
+    set((state) => {
+      const next = { ...state.settings, ...patch }
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(next))
+        } catch {
+          /* ignore storage errors */
+        }
+      }
+      return { settings: next }
+    }),
+  loadSettings: () => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(SETTINGS_KEY)
+      if (raw) set({ settings: { ...defaultSettings, ...(JSON.parse(raw) as Partial<GcsSettings>) } })
+    } catch {
+      /* ignore parse errors */
+    }
+  },
 }))

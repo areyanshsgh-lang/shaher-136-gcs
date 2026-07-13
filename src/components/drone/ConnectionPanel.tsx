@@ -57,7 +57,8 @@ export default function ConnectionPanel() {
     if (socketRef.current?.connected) return
     setConnectionStatus('connecting')
 
-    const link = new DroneLink()
+    const relayUrl = useDroneStore.getState().settings.relayUrl
+    const link = new DroneLink(relayUrl || undefined)
     addLog({ level: 'info', message: `Connecting to drone service (${link.endpoint})...`, source: 'gcs' })
 
     link.on('connect', () => {

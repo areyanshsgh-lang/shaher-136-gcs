@@ -155,13 +155,14 @@ export default function MapPanel() {
       // Handle map click for adding waypoints (uses refs to avoid stale closure)
       map.on('click', (e: L.LeafletMouseEvent) => {
         if (!addingRef.current) return
+        const s = useDroneStore.getState().settings
         const newWaypoint: Waypoint = {
           id: Math.random().toString(36).substr(2, 9),
           order: waypointsCountRef.current,
           latitude: e.latlng.lat,
           longitude: e.latlng.lng,
-          altitude: 50,
-          speed: 10,
+          altitude: s.defaultAltitude,
+          speed: s.defaultSpeed,
           action: 'fly_to',
           loiterTime: 0,
         }
@@ -224,13 +225,14 @@ export default function MapPanel() {
           if (addingRef.current) {
             // In "Add WP" mode a click means "place a waypoint here" — even on top
             // of an existing marker — instead of opening the existing one's editor.
+            const s = useDroneStore.getState().settings
             const nw: Waypoint = {
               id: Math.random().toString(36).substr(2, 9),
               order: waypointsCountRef.current,
               latitude: e.latlng.lat,
               longitude: e.latlng.lng,
-              altitude: 50,
-              speed: 10,
+              altitude: s.defaultAltitude,
+              speed: s.defaultSpeed,
               action: 'fly_to',
               loiterTime: 0,
             }
@@ -317,13 +319,14 @@ export default function MapPanel() {
             }
             if (fly) map.flyTo([lat, lng], 16, { duration: 0.6 })
             if (addWp) {
+              const s = useDroneStore.getState().settings
               const nw: Waypoint = {
                 id: Math.random().toString(36).substr(2, 9),
                 order: waypointsCountRef.current,
                 latitude: lat,
                 longitude: lng,
-                altitude: 50,
-                speed: 10,
+                altitude: s.defaultAltitude,
+                speed: s.defaultSpeed,
                 action: 'takeoff', // your current location is the launch point
                 loiterTime: 0,
               }
@@ -377,8 +380,10 @@ export default function MapPanel() {
 
         {/* Row 1 — title + waypoints + Add WP */}
         <div className="relative flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Navigation className="h-4 w-4 text-amber-400 shrink-0" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="grid place-items-center h-8 w-8 rounded-lg bg-amber-500/15 text-amber-400 shrink-0 ring-1 ring-amber-500/20">
+              <Navigation className="h-4 w-4" />
+            </span>
             <div className="leading-tight min-w-0">
               <h2 className="text-sm font-bold tracking-tight leading-none">MISSION MAP</h2>
               <p className="text-[10px] text-muted-foreground truncate">Plan your route · track your mission</p>
