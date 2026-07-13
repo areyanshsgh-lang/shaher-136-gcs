@@ -374,24 +374,9 @@ export default function MapPanel() {
 
   return (
     <Card className="border-border/50 h-full flex flex-col">
-      <CardHeader className="relative p-2.5 flex-shrink-0 space-y-2 overflow-hidden bg-gradient-to-b from-amber-500/[0.04] via-transparent to-transparent">
+      <CardHeader className="relative p-2.5 flex-shrink-0 space-y-2 overflow-hidden">
         {/* soft amber glow behind the header */}
         <div className="pointer-events-none absolute -top-16 right-6 h-28 w-64 rounded-full bg-amber-500/5 blur-3xl" />
-        {/* faint topographic contour texture (like a real map GCS) */}
-        <svg
-          aria-hidden
-          viewBox="0 0 800 130"
-          preserveAspectRatio="none"
-          className="pointer-events-none absolute inset-0 h-full w-full text-amber-400 opacity-[0.09]"
-        >
-          <g fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M0,16 C150,2 300,32 450,16 S750,2 800,22" />
-            <path d="M0,40 C180,26 320,56 480,40 S760,26 800,46" />
-            <path d="M0,64 C160,50 340,80 500,64 S770,50 800,70" />
-            <path d="M0,88 C200,74 360,104 520,88 S780,74 800,94" />
-            <path d="M0,112 C170,98 350,126 510,110 S790,98 800,116" />
-          </g>
-        </svg>
 
         {/* Row 1 — title + waypoints + Add WP */}
         <div className="relative flex items-center justify-between gap-3">
